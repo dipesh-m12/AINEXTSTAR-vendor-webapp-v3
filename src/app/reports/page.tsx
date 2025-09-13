@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-export default function Home() {
+
+export default function ReportsPage() {
   // This ensures /reports redirects to /reports/sales by default
-  redirect('/dashboard')
+  redirect('/reports/sales')
 }
