@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,9 +14,24 @@ import {
     Bell,
     Eye
 } from "lucide-react"
+interface Appointment {
+    id: number;
+    time: string;
+    client: string;
+    service: string;
+    status: 'completed' | 'in progress' | 'upcoming';
+    statusColor: string;
+}
+interface Notification {
+    id: number;
+    message: string;
+    time: string;
+    icon: React.ReactNode;
+}
+
 
 // Sample appointments data
-const todayAppointments = [
+const todayAppointments: Appointment[] = [
     {
         id: 1,
         time: "09:00",
@@ -58,8 +74,9 @@ const todayAppointments = [
     }
 ]
 
+
 // Sample notifications data
-const notifications = [
+const notifications: Notification[] = [
     {
         id: 1,
         message: "Hair color appointment reminder for Sarah Johnson at 2:00 PM",
@@ -87,8 +104,8 @@ const notifications = [
 ]
 
 // Mobile Appointment Card Component
-const AppointmentCard = ({ appointment }: { appointment: any }) => {
-    const getStatusIcon = (status: string) => {
+const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
+    const getStatusIcon = (status: Appointment['status']) => {
         switch (status) {
             case 'completed':
                 return <CheckCircle className="h-4 w-4 text-green-500" />
