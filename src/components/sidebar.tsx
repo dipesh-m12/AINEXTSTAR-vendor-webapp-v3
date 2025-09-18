@@ -95,12 +95,14 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className="border-r w-[280px]"
+      className={`
+        border-r border-gray-200 bg-white w-[280px]
+        md:fixed md:left-0 md:top-0 md:h-screen md:z-50
+      `}
       collapsible={isMobile ? "offcanvas" : "none"}
     >
-      <SidebarHeader className="p-6 pb-3">
-        {" "}
-        {/* CHANGE 1: Reduced bottom padding from pb-4 to pb-3 */}
+      {/* Header Section */}
+      <SidebarHeader className="flex-shrink-0 p-6 pb-4 bg-white border-b border-gray-100">
         <div className="flex items-center space-x-3 w-full">
           <Avatar className="h-12 w-12 shrink-0">
             <AvatarImage src="/placeholder-avatar.jpg" />
@@ -117,54 +119,71 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* Fixed separator that doesn't overflow */}
-      <div className="px-0">
-        <SidebarSeparator className="w-4/5" />
-      </div>
+      {/* Scrollable Navigation Content */}
+      <SidebarContent className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
+        <div className="px-3 py-4 bg-white">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {items.map((item) => {
+                  const isActive = pathname === item.url || (pathname.startsWith(item.url) && item.url !== '/dashboard');
 
-      <SidebarContent className="px-3 pt-2">
-        {" "}
-        {/* CHANGE 2: Reduced top padding from pt-4 to pt-2 */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
-              {" "}
-              {/* CHANGE 3: Reduced space between menu items from space-y-1 to space-y-0.5 */}
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.url}
-                    className="h-8 px-3 rounded-lg hover:bg-gray-100 data-[active=true]:bg-gray-100 data-[active=true]:text-gray-900" // CHANGE 4: Reduced height from h-11 to h-9
-                  >
-                    <Link
-                      href={item.url}
-                      className="flex items-center gap-3 w-full"
-                      onClick={() => {
-                        // Close mobile sidebar on navigation
-                        if (isMobile) {
-                          setOpenMobile(false);
-                        }
-                      }}
-                    >
-                      {/* Show larger icons on mobile, smaller on desktop */}
-                      <item.icon
-                        className={`${
-                          isMobile ? "h-5 w-5" : "h-4 w-4"
-                        } shrink-0 text-gray-600`}
-                      />{" "}
-                      {/* CHANGE 5: Reduced icon sizes */}
-                      <span className="text-sm font-medium text-gray-700 truncate">
-                        {item.title}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className={`
+                          group h-10 px-3 mx-0 rounded-lg transition-all duration-200 w-full
+            data-[active=true]:bg-lime-100 data-[active=true]:text-gray-900 data-[active=true]:hover:bg-lime-100
+            hover:bg-lime-50 hover:text-gray-900
+                          ${isActive
+                            ? 'bg-lime-100 text-gray-900 hover:bg-lime-100'
+                            : 'text-gray-700 hover:bg-lime-50 hover:text-gray-900'
+                          }
+                        `}
+                      >
+                        <Link
+                          href={item.url}
+                          className="flex items-center gap-3 w-full"
+                          onClick={() => {
+                            // Close mobile sidebar on navigation
+                            if (isMobile) {
+                              setOpenMobile(false);
+                            }
+                          }}
+                        >
+                          {/* Show larger icons on mobile, smaller on desktop */}
+                          <item.icon
+                            className={`
+                              ${isMobile ? "h-5 w-5" : "h-5 w-5"} shrink-0 transition-colors
+                              ${isActive
+                                ? 'text-gray-700'
+                                : 'text-gray-500 group-hover:text-gray-700'
+                              }
+                            `}
+                          />
+                          <span className={`
+                            text-sm font-medium truncate transition-colors
+                            ${isActive
+                              ? 'text-gray-900'
+                              : 'text-gray-700 group-hover:text-gray-900'
+                            }
+                          `}>
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
+
+
     </Sidebar>
   );
 }

@@ -31,16 +31,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
       >
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset className="overflow-hidden max-w-full">
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
+          <SidebarInset className="md:ml-[280px] overflow-hidden max-w-full">
+            {/* Mobile header - only visible on mobile */}
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden bg-white">
               <SidebarTrigger className="-ml-1" />
               <div className="ml-auto">{/* Add any header content here */}</div>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-6 overflow-auto">
+            {/* Main content area */}
+            <div className="flex flex-1 flex-col gap-4 p-6 bg-gray-50 overflow-auto">
               {children}
             </div>
           </SidebarInset>

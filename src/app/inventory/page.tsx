@@ -120,13 +120,13 @@ const getStockBar = (percentage: number, status: string) => {
     let barColor = "bg-lime-400"
 
     if (status === "low stock") {
-        barColor = "bg-orange-400"
+        barColor = "bg-lime-400"
     } else if (status === "out of stock") {
-        barColor = "bg-red-400"
+        barColor = "bg-lime-400"
     }
 
     return (
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-lime-50 rounded-full h-2">
             <div
                 className={`h-2 rounded-full transition-all ${barColor}`}
                 style={{ width: `${percentage}%` }}

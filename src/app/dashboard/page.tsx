@@ -278,32 +278,32 @@ export default function Home() {
                                 <Bell className="h-5 w-5 mr-2 text-orange-500" />
                                 Notifications
                             </CardTitle>
-                            <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                                View All Notifications
-                            </button>
                         </CardHeader>
-                        <CardContent className="pt-0">
-                            <div className="space-y-4">
-                                {notifications.map((notification, index) => (
-                                    <div key={notification.id}>
-                                        <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                                            <div className="mt-0.5">
-                                                {notification.icon}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-900 leading-5">{notification.message}</p>
-                                                <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
-                                            </div>
+                        <CardContent className="pt-0 pb-0">
+                            <div className="space-y-3">
+                                {notifications.map((notification) => (
+                                    <div key={notification.id} className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
+                                        <div className="mt-0.5">
+                                            {notification.icon}
                                         </div>
-                                        {index < notifications.length - 1 && (
-                                            <div className="border-b border-gray-100 mx-3"></div>
-                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-gray-900 leading-5 font-medium">{notification.message}</p>
+                                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                                        </div>
                                     </div>
                                 ))}
+                            </div>
+                            {/* View All Notifications Button at Bottom */}
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                <button className="w-full p-3 text-center text-sm text-black hover:bg-gray-50 font-medium transition-colors rounded-lg border border-gray-100 hover:border-gray-200">
+                                    View All Notifications
+                                </button>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
+
+
             </div>
         </div>
     )
