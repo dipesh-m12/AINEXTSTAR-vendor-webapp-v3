@@ -39,10 +39,10 @@ const vendorOnboardingSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   businessDescription: z.string().optional(),
   providerType: z.enum(["business", "isp", "supplier"], {
-    required_error: "Provider type is required",
+    message: "Provider type is required",
   }),
   subscriptionTier: z.enum(["free", "plus", "premium"], {
-    required_error: "Subscription tier is required",
+    message: "Subscription tier is required",
   }),
   contactEmail: z
     .string()
