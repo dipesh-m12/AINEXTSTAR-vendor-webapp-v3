@@ -192,23 +192,7 @@ const ProductCard = ({ item }: { item: typeof inventoryData[0] }) => {
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             Sell
                         </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-3 w-3" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                    <Eye className="h-3 w-3 mr-2" />
-                                    View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Edit className="h-3 w-3 mr-2" />
-                                    Edit Product
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                       
                     </div>
                 </div>
             </CardContent>
@@ -443,23 +427,7 @@ export default function InventoryPage() {
                                                         <Button size="sm" variant="outline" className="h-8 w-8 p-0">
                                                             <ShoppingCart className="h-4 w-4" />
                                                         </Button>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                                                                    <MoreVertical className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem>
-                                                                    <Eye className="h-4 w-4 mr-2" />
-                                                                    View Details
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem>
-                                                                    <Edit className="h-4 w-4 mr-2" />
-                                                                    Edit Product
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                       
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

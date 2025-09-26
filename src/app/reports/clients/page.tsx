@@ -12,21 +12,21 @@ import {
 const acquisitionData = [
     {
         source: "Walk-ins",
+        subtitle: "Direct visits",
         percentage: 45,
-        change: "+3%",
-        color: "bg-green-400"
+        change: "+3%"
     },
     {
         source: "Online Booking",
+        subtitle: "Website & app",
         percentage: 32,
-        change: "+2%",
-        color: "bg-blue-400"
+        change: "+2%"
     },
     {
         source: "Referrals",
+        subtitle: "Word of mouth",
         percentage: 23,
-        change: "-2%",
-        color: "bg-purple-400"
+        change: "-2%"
     }
 ]
 
@@ -52,24 +52,19 @@ const getProgressBar = (percentage: number, color: string = "bg-lime-400") => {
 // Mobile Acquisition Card Component
 const AcquisitionCard = ({ item }: { item: typeof acquisitionData[0] }) => {
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow bg-gray-100">
             <CardContent className="p-4">
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 text-sm">{item.source}</h3>
-                            <p className="text-xs text-gray-500 mt-1">{item.percentage}% of clients</p>
-                        </div>
-                        <div className="ml-2 shrink-0">
-                            <span className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                {item.change}
-                            </span>
-                        </div>
+                <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-base">{item.source}</h3>
+                        <p className="text-sm text-gray-500 mt-1">{item.subtitle}</p>
                     </div>
-                    <div className="space-y-2">
-                        <div className="text-right text-xs text-gray-500">{item.percentage}%</div>
-                        {getProgressBar(item.percentage, item.color)}
+                    <div className="text-right">
+                        <div className="text-xl font-bold text-gray-900">{item.percentage}%</div>
+                        <div className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                            {item.change}
+                        </div>
                     </div>
                 </div>
             </CardContent>
@@ -92,7 +87,7 @@ const DemographicsCard = ({ item }: { item: typeof demographicsData[0] }) => {
                         </div>
                     </div>
                     <div className="space-y-2">
-                        {getProgressBar(item.percentage, "bg-yellow-400")}
+                        {getProgressBar(item.percentage, "bg-lime-400")}
                     </div>
                 </div>
             </CardContent>
@@ -182,18 +177,18 @@ export default function ClientsReportsPage() {
                         </CardHeader>
                         <CardContent className="pt-0 space-y-4">
                             {acquisitionData.map((item, index) => (
-                                <div key={index} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">{item.source}</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-gray-900">{item.percentage}%</span>
-                                            <span className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                {item.change}
-                                            </span>
+                                <div key={index} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-900 text-base">{item.source}</div>
+                                        <div className="text-sm text-gray-500">{item.subtitle}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-gray-900">{item.percentage}%</div>
+                                        <div className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                                            }`}>
+                                            {item.change}
                                         </div>
                                     </div>
-                                    {getProgressBar(item.percentage, item.color)}
                                 </div>
                             ))}
                         </CardContent>
@@ -213,7 +208,7 @@ export default function ClientsReportsPage() {
                                         <span className="text-sm font-medium text-gray-700">{item.ageGroup}</span>
                                         <span className="text-sm font-bold text-gray-900">{item.percentage}%</span>
                                     </div>
-                                    {getProgressBar(item.percentage, "bg-yellow-400")}
+                                    {getProgressBar(item.percentage, "bg-lime-400")}
                                 </div>
                             ))}
                         </CardContent>
@@ -231,22 +226,22 @@ export default function ClientsReportsPage() {
                                 Client Acquisition Trends
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pt-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {acquisitionData.map((item, index) => (
-                                    <div key={index} className="space-y-2 p-3 bg-gray-50 rounded-lg">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-gray-700">{item.source}</span>
-                                            <span className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                {item.change}
-                                            </span>
-                                        </div>
-                                        <div className="text-xl font-bold text-gray-900">{item.percentage}%</div>
-                                        {getProgressBar(item.percentage, item.color)}
+                        <CardContent className="pt-0 space-y-4">
+                            {acquisitionData.map((item, index) => (
+                                <div key={index} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-900 text-base">{item.source}</div>
+                                        <div className="text-sm text-gray-500">{item.subtitle}</div>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-gray-900">{item.percentage}%</div>
+                                        <div className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                                            }`}>
+                                            {item.change}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
 

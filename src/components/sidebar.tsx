@@ -102,7 +102,7 @@ export function AppSidebar() {
       collapsible={isMobile ? "offcanvas" : "none"}
     >
       {/* Header Section */}
-      <SidebarHeader className="flex-shrink-0 p-6 pb-4 bg-white border-b border-gray-100">
+      <SidebarHeader className="flex-shrink-0 p-6 pb-4 bg-white border-b border-gray-100 ">
         <div className="flex items-center space-x-3 w-full">
           <Avatar className="h-12 w-12 shrink-0">
             <AvatarImage src="/placeholder-avatar.jpg" />
@@ -136,7 +136,7 @@ export function AppSidebar() {
                         className={`
                           group h-10 px-3 mx-0 rounded-lg transition-all duration-200 w-full
             data-[active=true]:bg-lime-100 data-[active=true]:text-gray-900 data-[active=true]:hover:bg-lime-100
-            hover:bg-lime-50 hover:text-gray-900
+            hover:bg-lime-50 hover:text-gray-900 
                           ${isActive
                             ? 'bg-lime-100 text-gray-900 hover:bg-lime-100'
                             : 'text-gray-700 hover:bg-lime-50 hover:text-gray-900'
