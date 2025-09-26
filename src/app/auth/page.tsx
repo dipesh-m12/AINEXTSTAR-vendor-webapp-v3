@@ -31,6 +31,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 // Zod validation schema
 const vendorOnboardingSchema = z.object({
@@ -215,6 +216,7 @@ export default function VendorOnboardingForm() {
         // Simulate redirect after another 2 seconds
         setTimeout(() => {
           // In a real app, this would be: router.push('/dashboard')
+          redirect("/dashboard");
           console.log("Redirecting to dashboard...");
           setIsRedirecting(false);
           setIsSubmitted(false);
