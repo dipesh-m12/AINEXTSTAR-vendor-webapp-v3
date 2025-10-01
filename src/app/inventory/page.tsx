@@ -192,7 +192,7 @@ const ProductCard = ({ item }: { item: typeof inventoryData[0] }) => {
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             Sell
                         </Button>
-                       
+
                     </div>
                 </div>
             </CardContent>
@@ -382,10 +382,10 @@ export default function InventoryPage() {
                 {/* Desktop View: Enhanced Table [web:184] */}
                 <div className="hidden xl:block">
                     <Card className="overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <Table>
+                        <div className="overflow-x-auto ml-2.5">
+                            <Table >
                                 <TableHeader>
-                                    <TableRow className="border-b border-gray-200">
+                                    <TableRow className="border-b border-gray-200 ">
                                         {/* FIXED: Enhanced Table Headers [web:184] */}
                                         <TableHead className="font-semibold text-gray-800 bg-white h-14 text-sm">Product</TableHead>
                                         <TableHead className="font-semibold text-gray-800 bg-white h-14 text-sm">Category</TableHead>
@@ -427,7 +427,7 @@ export default function InventoryPage() {
                                                         <Button size="sm" variant="outline" className="h-8 w-8 p-0">
                                                             <ShoppingCart className="h-4 w-4" />
                                                         </Button>
-                                                       
+
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
