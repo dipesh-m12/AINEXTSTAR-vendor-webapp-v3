@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-// Helo dipesh
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,52 +13,100 @@ import {
   Bell,
   Eye,
 } from "lucide-react";
-import axios from "axios";
 import { useState, useEffect } from "react";
+import axios from "axios";
+
+// TypeScript interfaces
+interface Service {
+  service_id: string;
+  name: string;
+  price: string;
+  duration_minutes: number;
+}
+
+interface BranchAppointment {
+  appointment_id: string;
+  customer_id: string;
+  staff_id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  payments: any[];
+}
+
+interface BranchApiResponse {
+  results: {
+    branch_id: string;
+    appointments: BranchAppointment[];
+    totalRevenue: number;
+    clientVisits: number;
+    utilization: number;
+  };
+}
+
+interface CustomerService {
+  service_id: string;
+  name: string;
+  price: string;
+  duration_minutes: number;
+}
+
+interface CustomerAppointment {
+  appointment_id: string;
+  customer_id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  services: CustomerService[];
+}
+
+interface CustomerApiResponse {
+  results: {
+    customer_id: string;
+    first_name: string;
+    last_name: string;
+    appointments: CustomerAppointment[];
+  };
+}
+
+// Map to store customer data for quick lookup
+interface CustomerDataMap {
+  [customerId: string]: {
+    name: string;
+    appointments: {
+      [appointmentId: string]: {
+        services: string[]; // Array of service names
+      };
+    };
+  };
+}
+
+interface KPIMetrics {
+  totalAppointments: number;
+  totalRevenue: number;
+  clientVisits: number;
+  staffUtilization: number;
+  appointmentChange: string;
+  revenueChange: string;
+  clientsChange: string;
+  utilizationChange: string;
+}
+
 interface Appointment {
-  id: number;
+  id: string;
   time: string;
   client: string;
   service: string;
   status: "completed" | "in progress" | "upcoming";
   statusColor: string;
 }
+
 interface Notification {
   id: number;
   message: string;
   time: string;
   icon: React.ReactNode;
 }
-
-// Sample appointments data
-
-// Sample notifications data
-const notifications: Notification[] = [
-  {
-    id: 1,
-    message: "Hair color appointment reminder for Sarah Johnson at 2:00 PM",
-    time: "10 min ago",
-    icon: <Calendar className="h-4 w-4 text-blue-500" />,
-  },
-  {
-    id: 2,
-    message: "Low stock alert: Hair conditioner (3 bottles left)",
-    time: "2 hours ago",
-    icon: <AlertCircle className="h-4 w-4 text-orange-500" />,
-  },
-  {
-    id: 3,
-    message: "New 5-star review from Maria Garcia",
-    time: "3 hours ago",
-    icon: <Activity className="h-4 w-4 text-green-500" />,
-  },
-  {
-    id: 4,
-    message: "Staff meeting scheduled for 6:00 PM",
-    time: "1 hours ago",
-    icon: <Users className="h-4 w-4 text-purple-500" />,
-  },
-];
 
 // Mobile Appointment Card Component
 const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
@@ -98,86 +145,352 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
 };
 
 export default function Home() {
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
+  // State management for API data and KPIs
+  const [kpiMetrics, setKpiMetrics] = useState<KPIMetrics>({
+    totalAppointments: 0,
+    totalRevenue: 0,
+    clientVisits: 0,
+    staffUtilization: 0,
+    appointmentChange: "+0%",
+    revenueChange: "+0%",
+    clientsChange: "+0%",
+    utilizationChange: "+0%",
+  });
+
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to calculate KPI metrics from API response
+  const calculateKPIMetrics = (
+    todayData: BranchApiResponse,
+    yesterdayData: BranchApiResponse
+  ): KPIMetrics => {
+    const today = todayData.results;
+    const yesterday = yesterdayData.results;
+
+    // 1. Total Appointments
+    const totalAppointments = today.appointments.length;
+    const yesterdayTotalAppointments = yesterday.appointments.length;
+
+    // 2. Total Revenue (directly from API)
+    const totalRevenue = today.totalRevenue;
+    const yesterdayRevenue = yesterday.totalRevenue;
+
+    // 3. Client Visits (directly from API - completed appointments)
+    const clientVisits = today.clientVisits;
+    const yesterdayClientVisits = yesterday.clientVisits;
+
+    // 4. Staff Utilization (directly from API)
+    const staffUtilization = Math.round(today.utilization);
+    const yesterdayStaffUtilization = Math.round(yesterday.utilization);
+
+    // Calculate percentage changes
+    const calculateChange = (today: number, yesterday: number): string => {
+      if (yesterday === 0) return "+0%";
+      const change = ((today - yesterday) / yesterday) * 100;
+      const sign = change >= 0 ? "+" : "";
+      return `${sign}${Math.round(change)}%`;
+    };
+
+    return {
+      totalAppointments,
+      totalRevenue,
+      clientVisits,
+      staffUtilization,
+      appointmentChange: calculateChange(
+        totalAppointments,
+        yesterdayTotalAppointments
+      ),
+      revenueChange: calculateChange(totalRevenue, yesterdayRevenue),
+      clientsChange: calculateChange(clientVisits, yesterdayClientVisits),
+      utilizationChange: calculateChange(
+        staffUtilization,
+        yesterdayStaffUtilization
+      ),
+    };
+  };
+
+  // NEW: Function to fetch customer data for all unique customer IDs
+  const fetchCustomerData = async (
+    customerIds: string[]
+  ): Promise<CustomerDataMap> => {
+    console.group("👤 fetchCustomerData - START");
+    console.log("Customer IDs to fetch:", customerIds);
+
+    const customerMap: CustomerDataMap = {};
+
+    try {
+      // Fetch all customer data in parallel
+      const customerPromises = customerIds.map((customerId) => {
+        const customerUrl = `https://rizzerv.kloudwizards.com/gateway/search/customers/${customerId}`;
+        console.log(`📡 Fetching customer from: ${customerUrl}`);
+        return axios.post(customerUrl, {});
+      });
+
+      console.log(
+        `🔄 Fetching ${customerPromises.length} customer(s) in parallel...`
+      );
+      const customerResponses = await Promise.all(customerPromises);
+
+      // Build the customer map
+      customerResponses.forEach((response) => {
+        const customerData: CustomerApiResponse = response.data;
+        const customer = customerData.results;
+
+        console.log(
+          `📋 Processing customer: ${customer.first_name} ${customer.last_name}`
+        );
+
+        // Build appointments map for this customer
+        const appointmentsMap: { [key: string]: { services: string[] } } = {};
+
+        customer.appointments.forEach((apt) => {
+          const serviceNames = apt.services.map((s) => s.name);
+          appointmentsMap[apt.appointment_id] = {
+            services: serviceNames,
+          };
+
+          console.log(
+            `  📝 Mapped appointment ${apt.appointment_id}:`,
+            serviceNames
+          );
+        });
+
+        // Add to customer map
+        customerMap[customer.customer_id] = {
+          name: `${customer.first_name} ${customer.last_name}`,
+          appointments: appointmentsMap,
+        };
+      });
+
+      console.log("✅ Customer map built successfully:", customerMap);
+      console.groupEnd();
+      return customerMap;
+    } catch (err: any) {
+      console.error("❌ Error fetching customer data:", err);
+      if (err.response) {
+        console.error("Response status:", err.response.status);
+        console.error("Response data:", err.response.data);
+        console.error("Request URL:", err.config?.url);
+      }
+      console.groupEnd();
+      return customerMap;
+    }
+  };
+
+  // UPDATED: Function to format appointment data with customer names and services
+  const formatAppointmentsForDisplay = (
+    appointments: BranchAppointment[],
+    customerMap: CustomerDataMap
+  ): Appointment[] => {
+    console.group("🎨 formatAppointmentsForDisplay");
+
+    const formatted = appointments.map((apt) => {
+      const startTime = new Date(apt.start_time);
+      const hours = startTime.getHours().toString().padStart(2, "0");
+      const minutes = startTime.getMinutes().toString().padStart(2, "0");
+
+      let statusColor = "bg-gray-100 text-gray-800";
+      let displayStatus: "completed" | "in progress" | "upcoming" = "upcoming";
+
+      if (apt.status.toLowerCase() === "completed") {
+        statusColor = "bg-green-100 text-green-800";
+        displayStatus = "completed";
+      } else if (apt.status.toLowerCase() === "in progress") {
+        statusColor = "bg-blue-100 text-blue-800";
+        displayStatus = "in progress";
+      }
+
+      // Get customer name from map
+      const customerName =
+        customerMap[apt.customer_id]?.name || apt.customer_id;
+
+      // Get services from map
+      const services =
+        customerMap[apt.customer_id]?.appointments[apt.appointment_id]
+          ?.services || [];
+      const serviceString =
+        services.length > 0 ? services.join(" + ") : apt.appointment_id;
+
+      console.log(`📌 Appointment ${apt.appointment_id}:`, {
+        time: `${hours}:${minutes}`,
+        customer: customerName,
+        services: serviceString,
+        status: displayStatus,
+      });
+
+      return {
+        id: apt.appointment_id,
+        time: `${hours}:${minutes}`,
+        client: customerName,
+        service: serviceString,
+        status: displayStatus,
+        statusColor,
+      };
+    });
+
+    console.log("✅ Formatted appointments:", formatted);
+    console.groupEnd();
+    return formatted;
+  };
+
+  // UPDATED: Function to fetch appointments data from API
+  const fetchAppointmentsData = async () => {
+    console.group("🚀 fetchAppointmentsData - START");
+    console.log("Function called at:", new Date().toISOString());
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Date ranges: Today: 29-30, Yesterday: 28-29
+      const todayStart = "2025-09-30";
+      const todayEnd = "2025-10-01";
+      const yesterdayStart = "2025-09-29";
+      const yesterdayEnd = "2025-09-30";
+
+      const baseUrl =
+        "https://rizzerv.kloudwizards.com/gateway/search/salons/65426f3f-5784-48a1-9275-55c21039b80a/branches/eabc2278-e3ae-4606-877b-0d3830e2fb81";
+
+      console.group("📋 Request Configuration");
+      console.log("Today range:", todayStart, "to", todayEnd);
+      console.log("Yesterday range:", yesterdayStart, "to", yesterdayEnd);
+      console.log("Base URL:", baseUrl);
+      console.groupEnd();
+
+      // Fetch today's data
+      console.log("📡 Making TODAY API call...");
+      const todayResponse = await axios.post(
+        `${baseUrl}?start=${todayStart}&end=${todayEnd}`,
+        {}
+      );
+      console.log("✅ Today API Response received:", todayResponse.data);
+
+      // Fetch yesterday's data
+      console.log("📡 Making YESTERDAY API call...");
+      const yesterdayResponse = await axios.post(
+        `${baseUrl}?start=${yesterdayStart}&end=${yesterdayEnd}`,
+        {}
+      );
+      console.log(
+        "✅ Yesterday API Response received:",
+        yesterdayResponse.data
+      );
+
+      // Calculate metrics
+      console.group("🧮 Processing KPI Metrics");
+      console.log(
+        "Today appointments count:",
+        todayResponse.data.results.appointments?.length
+      );
+      console.log(
+        "Yesterday appointments count:",
+        yesterdayResponse.data.results.appointments?.length
+      );
+      console.log("Today revenue:", todayResponse.data.results.totalRevenue);
+      console.log(
+        "Today client visits:",
+        todayResponse.data.results.clientVisits
+      );
+      console.log("Today utilization:", todayResponse.data.results.utilization);
+
+      const metrics = calculateKPIMetrics(
+        todayResponse.data,
+        yesterdayResponse.data
+      );
+      console.log("📊 Calculated metrics:", metrics);
+      console.groupEnd();
+
+      setKpiMetrics(metrics);
+
+      // NEW: Extract unique customer IDs from today's appointments
+      const todayAppointmentsData =
+        todayResponse.data.results.appointments || [];
+      const uniqueCustomerIds = [
+        ...new Set(
+          todayAppointmentsData.map((apt: BranchAppointment) => apt.customer_id)
+        ),
+      ] as string[];
+
+      console.log("👥 Unique customer IDs:", uniqueCustomerIds);
+
+      // NEW: Fetch customer data for all unique customers
+      const customerMap = await fetchCustomerData(uniqueCustomerIds);
+
+      // UPDATED: Format appointments with customer names and services
+      const formattedAppointments = formatAppointmentsForDisplay(
+        todayAppointmentsData,
+        customerMap
+      );
+
+      setTodayAppointments(formattedAppointments);
+      console.log("✅ State updated successfully");
+    } catch (err: any) {
+      console.group("❌ ERROR in fetchAppointmentsData");
+      console.error("Error message:", err.message);
+      console.error("Error code:", err.code);
+
+      if (err.response) {
+        console.error("Response status:", err.response.status);
+        console.error("Response data:", err.response.data);
+      }
+      console.groupEnd();
+
+      setError("Failed to fetch appointments data. Check console for details.");
+
+      // Fallback data
+      const fallbackMetrics = {
+        totalAppointments: 50,
+        totalRevenue: 0,
+        clientVisits: 50,
+        staffUtilization: 0,
+        appointmentChange: "+0%",
+        revenueChange: "+0%",
+        clientsChange: "+0%",
+        utilizationChange: "+0%",
+      };
+
+      console.log("📋 Using fallback metrics:", fallbackMetrics);
+      setKpiMetrics(fallbackMetrics);
+    } finally {
+      setLoading(false);
+      console.log("🏁 fetchAppointmentsData - END");
+      console.groupEnd();
+    }
+  };
+
+  // useEffect hook to fetch data when component mounts
+  useEffect(() => {
+    fetchAppointmentsData();
+  }, []);
+
+  const notifications: Notification[] = [
     {
       id: 1,
-      time: "09:00",
-      client: "Emma Wilson",
-      service: "Hair Cut & Styling + Shave",
-      status: "completed",
-      statusColor: "bg-green-100 text-green-800",
+      message: "Hair color appointment reminder for Sarah Johnson at 2:00 PM",
+      time: "10 min ago",
+      icon: <Calendar className="h-4 w-4 text-blue-500" />,
     },
     {
       id: 2,
-      time: "10:30",
-      client: "Mike Johnson",
-      service: "Beard Trim + Beard",
-      status: "completed",
-      statusColor: "bg-green-100 text-green-800",
+      message: "Low stock alert: Hair conditioner (3 bottles left)",
+      time: "2 hours ago",
+      icon: <AlertCircle className="h-4 w-4 text-orange-500" />,
     },
     {
       id: 3,
-      time: "11:00",
-      client: "Lisa Chen",
-      service: "Manicure + Pedi",
-      status: "in progress",
-      statusColor: "bg-blue-100 text-blue-800",
+      message: "New 5-star review from Maria Garcia",
+      time: "3 hours ago",
+      icon: <Activity className="h-4 w-4 text-green-500" />,
     },
     {
       id: 4,
-      time: "14:00",
-      client: "Sarah Johnson",
-      service: "Hair Color + Blowdry",
-      status: "upcoming",
-      statusColor: "bg-gray-100 text-gray-800",
+      message: "Staff meeting scheduled for 6:00 PM",
+      time: "1 hours ago",
+      icon: <Users className="h-4 w-4 text-purple-500" />,
     },
-    {
-      id: 5,
-      time: "15:30",
-      client: "Tom Martinez",
-      service: "Hair Cut + Beard",
-      status: "upcoming",
-      statusColor: "bg-gray-100 text-gray-800",
-    },
-  ]);
-
-  useEffect(() => {
-    const start = "2025-09-13";
-    const end = "2025-09-15";
-    const fetchAppointments = async () => {
-      try {
-        const response = await axios.post(
-          `https://rizzerv.kloudwizards.com/gateway/search/salons/65426f3f-5784-48a1-9275-55c21039b80a/branches/eabc2278-e3ae-4606-877b-0d3830e2fb81/appointments?start=2025-09-30&end=2025-10-07`
-          // `https://rizzerv.kloudwizards.com/gateway/search/salons/26aa1c4a-c832-40af-82d6-bfb488625849/branches/abad7660-c629-46e7-99cc-8c7960d2f76a/appointments?start=${start}&end=${end}`
-        );
-        console.log(response.data);
-        const appointments = response.data.results.map((item: any) => ({
-          id: item.appointment_id,
-          time: new Date(item.start_time).toLocaleTimeString("en-IN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Asia/Kolkata",
-          }),
-          client: item.customer_id,
-          service:
-            item.services.length > 0
-              ? item.services[0].name
-              : "Unknown Service",
-          status: item.status === "scheduled" ? "upcoming" : item.status,
-          statusColor:
-            item.status === "completed"
-              ? "bg-green-100 text-green-800"
-              : item.status === "scheduled"
-              ? "bg-gray-100 text-gray-800"
-              : "bg-blue-100 text-blue-800",
-        }));
-        setTodayAppointments(appointments);
-      } catch (error) {
-        console.error("Failed to fetch appointments:", error);
-      }
-    };
-    fetchAppointments();
-  }, []);
+  ];
 
   return (
     <div className="space-y-6">
@@ -194,12 +507,7 @@ export default function Home() {
             })()}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            Monday, September 29, 2025
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -214,7 +522,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats Cards - Responsive grid */}
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Stats Cards - Now using dynamic data from API */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Today's Appointments */}
         <Card className="hover:shadow-sm transition-shadow bg-white">
@@ -226,9 +541,11 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              24
+              {loading ? "..." : kpiMetrics.totalAppointments}
             </div>
-            <p className="text-xs text-gray-500 mt-1">+5% from yesterday</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {kpiMetrics.appointmentChange} from yesterday
+            </p>
           </CardContent>
         </Card>
 
@@ -242,9 +559,11 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              $2,840
+              {loading ? "..." : `$${kpiMetrics.totalRevenue.toLocaleString()}`}
             </div>
-            <p className="text-xs text-gray-500 mt-1">+12% from yesterday</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {kpiMetrics.revenueChange} from yesterday
+            </p>
           </CardContent>
         </Card>
 
@@ -258,9 +577,11 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              18
+              {loading ? "..." : kpiMetrics.clientVisits}
             </div>
-            <p className="text-xs text-gray-500 mt-1">+8% from yesterday</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {kpiMetrics.clientsChange} from yesterday
+            </p>
           </CardContent>
         </Card>
 
@@ -274,9 +595,11 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              87%
+              {loading ? "..." : `${kpiMetrics.staffUtilization}%`}
             </div>
-            <p className="text-xs text-gray-500 mt-1">+3% from yesterday</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {kpiMetrics.utilizationChange} from yesterday
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -296,45 +619,57 @@ export default function Home() {
               </button>
             </CardHeader>
             <CardContent className="pt-0">
-              {/* Desktop/Tablet View: Table-like layout */}
-              <div className="hidden sm:block space-y-3">
-                {todayAppointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-sm font-medium text-gray-900 w-12">
-                        {appointment.time}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">
-                          {appointment.client}
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">
+                  Loading appointments...
+                </div>
+              ) : todayAppointments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No appointments for today
+                </div>
+              ) : (
+                <>
+                  {/* Desktop/Tablet View: Table-like layout */}
+                  <div className="hidden sm:block space-y-3">
+                    {todayAppointments.map((appointment) => (
+                      <div
+                        key={appointment.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="text-sm font-medium text-gray-900 w-12">
+                            {appointment.time}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm">
+                              {appointment.client}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {appointment.service}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {appointment.service}
-                        </div>
+                        <Badge
+                          className={appointment.statusColor}
+                          variant="secondary"
+                        >
+                          {appointment.status}
+                        </Badge>
                       </div>
-                    </div>
-                    <Badge
-                      className={appointment.statusColor}
-                      variant="secondary"
-                    >
-                      {appointment.status}
-                    </Badge>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Mobile View: Card layout */}
-              <div className="block sm:hidden space-y-3">
-                {todayAppointments.map((appointment) => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={appointment}
-                  />
-                ))}
-              </div>
+                  {/* Mobile View: Card layout */}
+                  <div className="block sm:hidden space-y-3">
+                    {todayAppointments.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
