@@ -14,6 +14,8 @@ import {
   Bell,
   Eye,
 } from "lucide-react";
+import axios from "axios";
+import { useState, useEffect } from "react";
 interface Appointment {
   id: number;
   time: string;
@@ -30,48 +32,6 @@ interface Notification {
 }
 
 // Sample appointments data
-const todayAppointments: Appointment[] = [
-  {
-    id: 1,
-    time: "09:00",
-    client: "Emma Wilson",
-    service: "Hair Cut & Styling + Shave",
-    status: "completed",
-    statusColor: "bg-green-100 text-green-800",
-  },
-  {
-    id: 2,
-    time: "10:30",
-    client: "Mike Johnson",
-    service: "Beard Trim + Beard",
-    status: "completed",
-    statusColor: "bg-green-100 text-green-800",
-  },
-  {
-    id: 3,
-    time: "11:00",
-    client: "Lisa Chen",
-    service: "Manicure + Pedi",
-    status: "in progress",
-    statusColor: "bg-blue-100 text-blue-800",
-  },
-  {
-    id: 4,
-    time: "14:00",
-    client: "Sarah Johnson",
-    service: "Hair Color + Blowdry",
-    status: "upcoming",
-    statusColor: "bg-gray-100 text-gray-800",
-  },
-  {
-    id: 5,
-    time: "15:30",
-    client: "Tom Martinez",
-    service: "Hair Cut + Beard",
-    status: "upcoming",
-    statusColor: "bg-gray-100 text-gray-800",
-  },
-];
 
 // Sample notifications data
 const notifications: Notification[] = [
@@ -138,16 +98,108 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
 };
 
 export default function Home() {
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
+    {
+      id: 1,
+      time: "09:00",
+      client: "Emma Wilson",
+      service: "Hair Cut & Styling + Shave",
+      status: "completed",
+      statusColor: "bg-green-100 text-green-800",
+    },
+    {
+      id: 2,
+      time: "10:30",
+      client: "Mike Johnson",
+      service: "Beard Trim + Beard",
+      status: "completed",
+      statusColor: "bg-green-100 text-green-800",
+    },
+    {
+      id: 3,
+      time: "11:00",
+      client: "Lisa Chen",
+      service: "Manicure + Pedi",
+      status: "in progress",
+      statusColor: "bg-blue-100 text-blue-800",
+    },
+    {
+      id: 4,
+      time: "14:00",
+      client: "Sarah Johnson",
+      service: "Hair Color + Blowdry",
+      status: "upcoming",
+      statusColor: "bg-gray-100 text-gray-800",
+    },
+    {
+      id: 5,
+      time: "15:30",
+      client: "Tom Martinez",
+      service: "Hair Cut + Beard",
+      status: "upcoming",
+      statusColor: "bg-gray-100 text-gray-800",
+    },
+  ]);
+
+  useEffect(() => {
+    const start = "2025-09-13";
+    const end = "2025-09-15";
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.post(
+          `https://rizzerv.kloudwizards.com/gateway/search/salons/65426f3f-5784-48a1-9275-55c21039b80a/branches/eabc2278-e3ae-4606-877b-0d3830e2fb81/appointments?start=2025-09-30&end=2025-10-07`
+          // `https://rizzerv.kloudwizards.com/gateway/search/salons/26aa1c4a-c832-40af-82d6-bfb488625849/branches/abad7660-c629-46e7-99cc-8c7960d2f76a/appointments?start=${start}&end=${end}`
+        );
+        console.log(response.data);
+        const appointments = response.data.results.map((item: any) => ({
+          id: item.appointment_id,
+          time: new Date(item.start_time).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Kolkata",
+          }),
+          client: item.customer_id,
+          service:
+            item.services.length > 0
+              ? item.services[0].name
+              : "Unknown Service",
+          status: item.status === "scheduled" ? "upcoming" : item.status,
+          statusColor:
+            item.status === "completed"
+              ? "bg-green-100 text-green-800"
+              : item.status === "scheduled"
+              ? "bg-gray-100 text-gray-800"
+              : "bg-blue-100 text-blue-800",
+        }));
+        setTodayAppointments(appointments);
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+      }
+    };
+    fetchAppointments();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-            Good morning! 👋
+            {(() => {
+              const hour = new Date().getHours();
+              if (hour >= 5 && hour < 12) return "Good morning! 👋";
+              if (hour >= 12 && hour < 17) return "Good afternoon! ☀️";
+              if (hour >= 17 && hour < 22) return "Good evening! 🌆";
+              return "Good night! 🌙";
+            })()}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Monday, September 8, 2025
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </p>
         </div>
         <div className="flex items-center space-x-3">
