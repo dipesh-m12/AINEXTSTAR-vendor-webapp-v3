@@ -7,6 +7,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar";
+import { TopBar } from "./top-bar";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           <div className="ml-auto">{/* Add any header content here */}</div>
         </header>
         {/* Main content area */}
+        <TopBar />
         <div className="flex flex-1 flex-col gap-4 p-6 bg-gray-50 overflow-auto">
           {children}
         </div>

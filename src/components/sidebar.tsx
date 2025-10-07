@@ -4,14 +4,13 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   Calendar,
-  CreditCard,
+  ShoppingCart,
   Home,
-  Users,
   Package,
   BarChart3,
   Star,
   Settings,
-  Search,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,7 +23,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,39 +39,29 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "POS",
-    url: "/pos",
-    icon: CreditCard,
+    title: "Quick Sale",
+    url: "/quick-sale",
+    icon: ShoppingCart,
   },
   {
-    title: "Client Management",
-    url: "/clients",
-    icon: Users,
-  },
-  {
-    title: "Staff Management",
-    url: "/staff",
-    icon: Users,
-  },
-  {
-    title: "Inventory",
-    url: "/inventory",
-    icon: Package,
+    title: "Management",
+    url: "/management",
+    icon: Building2,
   },
   {
     title: "Reports & Analytics",
-    url: "/reports",
+    url: "/report",
     icon: BarChart3,
   },
   {
     title: "Marketing",
     url: "/marketing",
-    icon: Search,
+    icon: Star,
   },
   {
-    title: "Reputation",
-    url: "/reputation",
-    icon: Star,
+    title: "Suppliers",
+    url: "/suppliers",
+    icon: Package,
   },
   {
     title: "Settings",
@@ -102,19 +90,19 @@ export function AppSidebar() {
       collapsible={isMobile ? "offcanvas" : "none"}
     >
       {/* Header Section */}
-      <SidebarHeader className="flex-shrink-0 p-6 pb-4 bg-white border-b border-gray-100 ">
+      <SidebarHeader className="flex-shrink-0 p-6 pb-4 bg-white border-b border-gray-100">
         <div className="flex items-center space-x-3 w-full">
-          <Avatar className="h-12 w-12 shrink-0">
-            <AvatarImage src="/placeholder-avatar.jpg" />
-            <AvatarFallback className="bg-pink-500 text-white text-lg font-semibold">
-              MB
+          <Avatar className="h-12 w-12 shrink-0 bg-pink-600">
+            <AvatarImage src="/rizzerv.png" />
+            <AvatarFallback className="bg-pink-600 text-white text-xl font-bold">
+              R
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
-              Max Branch
+            <h2 className="text-lg font-semibold text-gray-900 truncate font-agenda">
+              Rizzerv Dashboard
             </h2>
-            <p className="text-sm text-gray-500 truncate">Main Branch</p>
+            <p className="text-sm text-gray-500 truncate">Salon Name</p>
           </div>
         </div>
       </SidebarHeader>
@@ -126,7 +114,10 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {items.map((item) => {
-                  const isActive = pathname === item.url || (pathname.startsWith(item.url) && item.url !== '/dashboard');
+                  const isActive =
+                    pathname === item.url ||
+                    (pathname.startsWith(item.url) &&
+                      item.url !== "/dashboard");
 
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -134,12 +125,13 @@ export function AppSidebar() {
                         asChild
                         isActive={isActive}
                         className={`
-                          group h-10 px-3 mx-0 rounded-lg transition-all duration-200 w-full
-            data-[active=true]:bg-lime-100 data-[active=true]:text-gray-900 data-[active=true]:hover:bg-lime-100
-            hover:bg-lime-50 hover:text-gray-900 
-                          ${isActive
-                            ? 'bg-lime-100 text-gray-900 hover:bg-lime-100'
-                            : 'text-gray-700 hover:bg-lime-50 hover:text-gray-900'
+                          group h-11 px-3 mx-0 rounded-lg transition-all duration-200 w-full
+                          data-[active=true]:bg-lime-100 data-[active=true]:text-gray-900 data-[active=true]:hover:bg-lime-100
+                          hover:bg-lime-50 hover:text-gray-900 
+                          ${
+                            isActive
+                              ? "bg-lime-100 text-gray-900 hover:bg-lime-100"
+                              : "text-gray-700 hover:bg-lime-50 hover:text-gray-900"
                           }
                         `}
                       >
@@ -153,23 +145,26 @@ export function AppSidebar() {
                             }
                           }}
                         >
-                          {/* Show larger icons on mobile, smaller on desktop */}
                           <item.icon
                             className={`
-                              ${isMobile ? "h-5 w-5" : "h-5 w-5"} shrink-0 transition-colors
-                              ${isActive
-                                ? 'text-gray-700'
-                                : 'text-gray-500 group-hover:text-gray-700'
+                              h-5 w-5 shrink-0 transition-colors
+                              ${
+                                isActive
+                                  ? "text-gray-900"
+                                  : "text-gray-600 group-hover:text-gray-900"
                               }
                             `}
                           />
-                          <span className={`
-                            text-sm font-medium truncate transition-colors
-                            ${isActive
-                              ? 'text-gray-900'
-                              : 'text-gray-700 group-hover:text-gray-900'
-                            }
-                          `}>
+                          <span
+                            className={`
+                              text-[15px] font-medium truncate transition-colors
+                              ${
+                                isActive
+                                  ? "text-gray-900"
+                                  : "text-gray-700 group-hover:text-gray-900"
+                              }
+                            `}
+                          >
                             {item.title}
                           </span>
                         </Link>
@@ -182,8 +177,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </div>
       </SidebarContent>
-
-
     </Sidebar>
   );
 }
