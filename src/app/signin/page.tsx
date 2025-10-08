@@ -2,7 +2,7 @@
 "use client";
 
 import type React from "react";
-import { Building2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { initializeApp, getApps, getApp } from "firebase/app";
@@ -44,10 +44,6 @@ const signInSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Mock valid credentials
-const MOCK_VALID_EMAIL = "user@example.com";
-const MOCK_VALID_PASSWORD = "password123";
-
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -58,50 +54,47 @@ export default function SignInPage() {
     {}
   );
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   async function onEmailSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors({});
     setGeneralError(null);
-    setSuccess(false);
 
     // Validate with Zod
-    const result: any = signInSchema.safeParse({ email, password });
+    const result = signInSchema.safeParse({ email, password });
 
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {};
-      if (result.error?.errors) {
-        result.error.errors.forEach((err: any) => {
-          if (err.path[0] === "email" || err.path[0] === "password") {
-            fieldErrors[err.path[0] as "email" | "password"] = err.message;
-          }
-        });
+      const zodErrors = result.error.flatten().fieldErrors;
+
+      if (zodErrors.email) {
+        fieldErrors.email = zodErrors.email[0];
       }
+      if (zodErrors.password) {
+        fieldErrors.password = zodErrors.password[0];
+      }
+
       setErrors(fieldErrors);
       return;
     }
 
     setLoading(true);
 
-    // Mock authentication - any valid email/password format is accepted
+    // Mock authentication - simulate API call
     setTimeout(() => {
-      setSuccess(true);
-      setTimeout(() => router.push("/dashboard"), 2000);
-    }, 1000);
+      setLoading(false);
+      router.push("/dashboard");
+    }, 1500);
   }
 
   async function onGoogleSignIn() {
     setGeneralError(null);
-    setSuccess(false);
     setGoogleLoading(true);
     try {
       await signInWithPopup(auth, provider);
-      setSuccess(true);
-      setTimeout(() => router.push("/dashboard"), 2000);
+      router.push("/dashboard");
     } catch (err: any) {
       setGeneralError(err?.message || "Google sign in failed");
-    } finally {
       setGoogleLoading(false);
     }
   }
@@ -130,14 +123,14 @@ export default function SignInPage() {
         className="mx-auto w-full max-w-md rounded-2xl p-6 sm:p-8 space-y-6"
         style={{ backgroundColor: "white", border: `1px solid ${BORDER}` }}
       >
-        {generalError ? (
+        {generalError && (
           <div
             role="alert"
             className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700"
           >
             {generalError}
           </div>
-        ) : null}
+        )}
 
         <form onSubmit={onEmailSignIn} className="space-y-4" noValidate>
           <div className="space-y-2">
@@ -161,6 +154,7 @@ export default function SignInPage() {
               aria-required="true"
               aria-invalid={!!errors.email}
               className={errors.email ? "border-red-500" : ""}
+              disabled={loading}
             />
             {errors.email && (
               <p className="text-sm text-red-600" role="alert">
@@ -191,6 +185,7 @@ export default function SignInPage() {
               aria-required="true"
               aria-invalid={!!errors.password}
               className={errors.password ? "border-red-500" : ""}
+              disabled={loading}
             />
             {errors.password && (
               <p className="text-sm text-red-600" role="alert">
@@ -202,17 +197,14 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-lg text-base font-semibold disabled:opacity-50 inline-flex items-center justify-center"
+            className="w-full h-12 rounded-lg text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
             style={{ backgroundColor: LIME, color: "#111827" }}
           >
             {loading ? (
-              <span className="inline-flex items-center gap-2">
-                <span
-                  aria-hidden
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400/40 border-t-gray-900"
-                />
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Signing in…
-              </span>
+              </>
             ) : (
               "Sign in"
             )}
@@ -234,12 +226,12 @@ export default function SignInPage() {
           </div>
         </div>
 
-        {/* Google sign-in button (functional) */}
+        {/* Google sign-in button */}
         <button
           type="button"
           onClick={onGoogleSignIn}
-          disabled={googleLoading}
-          className="w-full h-12 rounded-lg border inline-flex items-center justify-center gap-2 disabled:opacity-50"
+          disabled={googleLoading || loading}
+          className="w-full h-12 rounded-lg border inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             borderColor: BORDER,
             backgroundColor: "white",
@@ -247,15 +239,12 @@ export default function SignInPage() {
           }}
         >
           {googleLoading ? (
-            <span className="inline-flex items-center gap-2">
-              <span
-                aria-hidden
-                className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400/40 border-t-gray-900"
-              />
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
               Connecting to Google…
-            </span>
+            </>
           ) : (
-            <span className="inline-flex items-center gap-2">
+            <>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 48 48"
@@ -281,7 +270,7 @@ export default function SignInPage() {
                 ></path>
               </svg>
               Continue with Google
-            </span>
+            </>
           )}
         </button>
 
