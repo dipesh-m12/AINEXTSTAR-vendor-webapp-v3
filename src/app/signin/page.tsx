@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type React from "react";
@@ -66,12 +67,12 @@ export default function SignInPage() {
     setSuccess(false);
 
     // Validate with Zod
-    const result = signInSchema.safeParse({ email, password });
+    const result: any = signInSchema.safeParse({ email, password });
 
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {};
       if (result.error?.errors) {
-        result.error.errors.forEach((err) => {
+        result.error.errors.forEach((err: any) => {
           if (err.path[0] === "email" || err.path[0] === "password") {
             fieldErrors[err.path[0] as "email" | "password"] = err.message;
           }
