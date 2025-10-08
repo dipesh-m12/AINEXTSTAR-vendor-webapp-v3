@@ -44,7 +44,8 @@ const signInSchema = z.object({
 });
 
 // Mock valid credentials
-// (No longer needed - any valid format email/password is accepted)
+const MOCK_VALID_EMAIL = "user@example.com";
+const MOCK_VALID_PASSWORD = "password123";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -95,9 +96,11 @@ export default function SignInPage() {
     setGoogleLoading(true);
     try {
       await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      setSuccess(true);
+      setTimeout(() => router.push("/dashboard"), 2000);
     } catch (err: any) {
       setGeneralError(err?.message || "Google sign in failed");
+    } finally {
       setGoogleLoading(false);
     }
   }
@@ -132,15 +135,6 @@ export default function SignInPage() {
             className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700"
           >
             {generalError}
-          </div>
-        ) : null}
-
-        {success ? (
-          <div
-            role="status"
-            className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-gray-800"
-          >
-            Signed in! Redirecting to dashboard…
           </div>
         ) : null}
 
