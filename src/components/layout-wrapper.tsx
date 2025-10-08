@@ -11,7 +11,9 @@ import { TopBar } from "./top-bar";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthRoute = pathname?.startsWith("/auth");
+
+  const isAuthRoute =
+    pathname?.startsWith("/signin") || pathname?.startsWith("/signup");
 
   if (isAuthRoute) {
     return <div className="min-h-screen bg-white">{children}</div>;
